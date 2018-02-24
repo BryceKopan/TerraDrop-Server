@@ -2,5 +2,5 @@
 /.build
 /Packages
 /*.xcodeproj
-.resolved
-.swp
+*.resolved
+*.swp
