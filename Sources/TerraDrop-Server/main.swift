@@ -1,19 +1,6 @@
 import PerfectHTTP
 import PerfectHTTPServer
-
-func handler(request: HTTPRequest, response: HTTPResponse)
-{
-    response.setHeader(.contentType, value: "text/html")
-    response.appendBody(string: "<html><title>Hello, world!</title><body>Hello, world!</body></html>")
-    response.completed()
-}
-
-func handler2(request: HTTPRequest, response: HTTPResponse)
-{
-    response.setHeader(.contentType, value: "string")
-    response.appendBody(string: "Test")
-    response.completed()
-}
+import PerfectMySQL
 
 let confData = [
     "servers": [
@@ -26,8 +13,7 @@ let confData = [
             "name":"localhost",
             "port":8181,
             "routes":[
-                ["method":"get", "uri":"/", "handler":handler],
-                ["method":"get", "uri":"/test", "handler":handler2],
+                ["method":"get", "uri":"/", "handler":Handlers.handler],
                 ["method":"get", "uri":"/**", "handler":PerfectHTTPServer.HTTPHandler.staticFiles,
                 "documentRoot":"./webroot",
                 "allowResponseFilters":true]
@@ -42,6 +28,23 @@ let confData = [
         ]
     ]
 ]
+
+let testHost = "0.0.0.0"
+let testUser = "root"
+let testPassword = "root"
+let testDB = "TerraDrop"
+
+let mysql = MySQL()
+let connected = mysql.connect(host: testHost, user: testUser, password: testPassword)
+
+if connected
+{
+    print("Connected to MySQL Database")
+}
+else
+{
+    print(mysql.errorMessage())
+}
 
 do {
     // Launch the servers based on the configuration data.
