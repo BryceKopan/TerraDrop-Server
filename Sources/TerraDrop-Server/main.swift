@@ -12,9 +12,11 @@ let confData = [
         //* Performs content compression on outgoing data when appropriate.
         [
             "name":"localhost",
-            "port":8181,
+            "port":8080,
             "routes":[
-                ["method":"get", "uri":"/", "handler":Handlers.returnDrop],
+                ["method":"get", "uri":"/getDrops", "handler":Handlers.getDrops],
+                ["method":"get", "uri":"/getUsers", "handler":Handlers.getUsers],
+                ["method":"post", "uri":"/postDrop", "handler":Handlers.postDrop],
                 ["method":"get", "uri":"/**", "handler":PerfectHTTPServer.HTTPHandler.staticFiles,
                 "documentRoot":"./webroot",
                 "allowResponseFilters":true]
@@ -30,44 +32,29 @@ let confData = [
     ]
 ]
 
-let testHost = "0.0.0.0"
-let testUser = "root"
-let testPassword = "root"
-let testDB = "TerraDrop"
+let mySQLHost = "0.0.0.0"
+let mySQLUser = "root"
+let mySQLPassword = "root"
+let mySQLDB = "TerraDrop"
 
 let jsonEncoder = JSONEncoder()
 
 let mysql = MySQL()
-let connected = mysql.connect(host: testHost, user: testUser, password: testPassword, db: testDB)
+let connected = mysql.connect(host: mySQLHost, user: mySQLUser, password: mySQLPassword, db: mySQLDB)
 
 if connected
 {
-    let querySuccess = mysql.query(statement: "SELECT Latitude, Longitude FROM TerraDrop WHERE idDrop = 1;")
-    
-    print(querySuccess)
-    if(querySuccess)
+    do 
     {
-        print("Query Success")
-        let results = mysql.storeResults()!
-
-        print(results);
-
-        results.forEachRow { row in
-            print("Latitude: \(row[0]!)")
-            print("Longitude: \(row[1]!)") 
-        }
+        try HTTPServer.launch(configurationData: confData)
     } 
-
-    print("Connected to MySQL Database")
+    catch 
+    {
+        fatalError("\(error)")
+    }
 }
 else
 {
     print(mysql.errorMessage())
 }
 
-do {
-    // Launch the servers based on the configuration data.
-    try HTTPServer.launch(configurationData: confData)
-} catch {
-        fatalError("\(error)") // fatal error launching one of the servers
-}

@@ -1,0 +1,1 @@
+INSERT INTO User (Username, Password, DisplayName) VALUES ('Tommy', 'appleisdabest', 'AppleBoy'), ('Grant', 'trainsdabest', 'BigPaPa'), ('Micheal', 'blockchaindabest', 'CaptainCrypto'), ('Haley', 'artdabest', 'TokenArtist');
