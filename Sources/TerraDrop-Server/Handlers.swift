@@ -2,6 +2,12 @@ import PerfectHTTP
 
 public class Handlers
 {
+    /*public static func login(request: HTTPRequest, response: HTTPResponse)
+    {
+
+    }*/
+
+
     public static func postDrop(request: HTTPRequest, response: HTTPResponse)
     {
         var drop = FullDrop() 
@@ -16,6 +22,7 @@ public class Handlers
         print("title")
         drop.message = String(request.param(name: "message", defaultValue: nil)!)!
         print("meesage")
+        drop.color = String(request.param(name: "color", defaultValue: "00FF00")!)!
 
         let querySuccess = mysql.query(statement: "INSERT INTO TerraDrop (Hidden, Latitude, Longitude, Title, Message, UserID) VALUES (FALSE, \(drop.latitude), \(drop.longitude), '\(drop.title)', '\(drop.message)', \(drop.userID))")
 
@@ -98,7 +105,7 @@ public class Handlers
         }*/
 
 
-        let querySuccess = mysql.query(statement: "SELECT DropID, Latitude, Longitude FROM TerraDrop")
+        let querySuccess = mysql.query(statement: "SELECT DropID, Latitude, Longitude, Color FROM TerraDrop")
 
         guard querySuccess else
         {
@@ -118,6 +125,7 @@ public class Handlers
             drop.id = Int(row[0]!)!
             drop.latitude = Double(row[1]!)!
             drop.longitude = Double(row[2]!)!
+            drop.color = String(row[3]!)!
 
             drops.append(drop)
         }

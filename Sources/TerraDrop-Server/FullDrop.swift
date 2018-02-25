@@ -5,4 +5,5 @@ struct FullDrop : Codable
     var title: String = ""
     var message: String = ""
     var userID: Int = 0
+    var color: String = "00FF00"
 }

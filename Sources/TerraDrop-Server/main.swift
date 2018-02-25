@@ -2,6 +2,7 @@ import PerfectHTTP
 import PerfectHTTPServer
 import PerfectMySQL
 import Foundation
+import PerfectSession
 
 let confData = [
     "servers": [
@@ -18,7 +19,8 @@ let confData = [
                 ["method":"get", "uri":"/getUsers", "handler":Handlers.getUsers],
                 ["method":"post", "uri":"/postDrop", "handler":Handlers.postDrop],
                 ["method":"get", "uri":"/getDisplayDrop", "handler":Handlers.getDisplayDrop],
-                ["method":"get", "uri":"/**", "handler":PerfectHTTPServer.HTTPHandler.staticFiles,
+                //["method":"post", "uri":"/login", "handler":Handlers.login],
+                ["method":"get", "uri":"/**", "handler":PerfectHTTPServer.HTTPHandler.staticFiles,                    
                 "documentRoot":"./webroot",
                 "allowResponseFilters":true]
             ],
@@ -32,6 +34,13 @@ let confData = [
         ]
     ]
 ]
+
+/*SessionConfig.name = "TerraDropSession"
+SessionConfig.idle = 86400
+SessionConfig.cookieDomain = "localhost"
+
+let sessionDriver = SessionMemoryDriver()
+*/
 
 let mySQLHost = "0.0.0.0"
 let mySQLUser = "root"
