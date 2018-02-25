@@ -38,7 +38,7 @@ public class Handlers
     {
         let dropID = Int(request.param(name: "dropID", defaultValue: nil)!)!
 
-        let querySuccess = mysql.query(statement: "SELECT Title, Message, DisplayName FROM TerraDrop WHERE DropID = \(dropID) INNER JOIN User ON TerraDrop.UserID = User.UserID")
+        let querySuccess = mysql.query(statement: "SELECT Title, Message, DisplayName FROM TerraDrop INNER JOIN User ON TerraDrop.UserID = User.UserID WHERE DropID = \(dropID)")
 
         guard querySuccess else
         {
