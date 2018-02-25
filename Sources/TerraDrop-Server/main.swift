@@ -1,6 +1,7 @@
 import PerfectHTTP
 import PerfectHTTPServer
 import PerfectMySQL
+import Foundation
 
 let confData = [
     "servers": [
@@ -13,7 +14,7 @@ let confData = [
             "name":"localhost",
             "port":8181,
             "routes":[
-                ["method":"get", "uri":"/", "handler":Handlers.handler],
+                ["method":"get", "uri":"/", "handler":Handlers.returnDrop],
                 ["method":"get", "uri":"/**", "handler":PerfectHTTPServer.HTTPHandler.staticFiles,
                 "documentRoot":"./webroot",
                 "allowResponseFilters":true]
@@ -34,11 +35,29 @@ let testUser = "root"
 let testPassword = "root"
 let testDB = "TerraDrop"
 
+let jsonEncoder = JSONEncoder()
+
 let mysql = MySQL()
-let connected = mysql.connect(host: testHost, user: testUser, password: testPassword)
+let connected = mysql.connect(host: testHost, user: testUser, password: testPassword, db: testDB)
 
 if connected
 {
+    let querySuccess = mysql.query(statement: "SELECT Latitude, Longitude FROM TerraDrop WHERE idDrop = 1;")
+    
+    print(querySuccess)
+    if(querySuccess)
+    {
+        print("Query Success")
+        let results = mysql.storeResults()!
+
+        print(results);
+
+        results.forEachRow { row in
+            print("Latitude: \(row[0]!)")
+            print("Longitude: \(row[1]!)") 
+        }
+    } 
+
     print("Connected to MySQL Database")
 }
 else
