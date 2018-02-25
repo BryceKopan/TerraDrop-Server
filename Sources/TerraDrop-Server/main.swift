@@ -17,6 +17,7 @@ let confData = [
                 ["method":"get", "uri":"/getDrops", "handler":Handlers.getDrops],
                 ["method":"get", "uri":"/getUsers", "handler":Handlers.getUsers],
                 ["method":"post", "uri":"/postDrop", "handler":Handlers.postDrop],
+                ["method":"get", "uri":"/getDisplayDrop", "handler":Handlers.getDisplayDrop],
                 ["method":"get", "uri":"/**", "handler":PerfectHTTPServer.HTTPHandler.staticFiles,
                 "documentRoot":"./webroot",
                 "allowResponseFilters":true]
