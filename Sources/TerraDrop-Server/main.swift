@@ -50,21 +50,25 @@ let mySQLDB = "TerraDrop"
 let jsonEncoder = JSONEncoder()
 
 let mysql = MySQL()
-let connected = mysql.connect(host: mySQLHost, user: mySQLUser, password: mySQLPassword, db: mySQLDB)
+var connected = mysql.connect(host: mySQLHost, user: mySQLUser, password: mySQLPassword, db: mySQLDB)
 
-if connected
+assert(connected, mysql.errorMessage())
+    
+do 
 {
-    do 
+    try HTTPServer.launch(configurationData: confData)
+} 
+catch 
+{
+    fatalError("\(error)")
+}
+
+public func checkConnection()
+{
+    if(!connected)
     {
-        try HTTPServer.launch(configurationData: confData)
-    } 
-    catch 
-    {
-        fatalError("\(error)")
+        connected = mysql.connect(host: mySQLHost, user: mySQLUser, password: mySQLPassword, db: mySQLDB)
+
+        assert(connected, mysql.errorMessage())        
     }
 }
-else
-{
-    print(mysql.errorMessage())
-}
-

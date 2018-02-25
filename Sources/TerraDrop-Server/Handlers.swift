@@ -10,6 +10,8 @@ public class Handlers
 
     public static func postDrop(request: HTTPRequest, response: HTTPResponse)
     {
+        checkConnection()
+
         var drop = FullDrop() 
 
         drop.latitude = Double(request.param(name: "latitude", defaultValue: nil)!)!
@@ -43,6 +45,8 @@ public class Handlers
 
     public static func getDisplayDrop(request: HTTPRequest, response: HTTPResponse)
     {
+        checkConnection()
+
         let dropID = Int(request.param(name: "dropID", defaultValue: nil)!)!
 
         let querySuccess = mysql.query(statement: "SELECT Title, Message, DisplayName FROM TerraDrop INNER JOIN User ON TerraDrop.UserID = User.UserID WHERE DropID = \(dropID)")
@@ -103,7 +107,7 @@ public class Handlers
             
             return drops
         }*/
-
+        checkConnection()
 
         let querySuccess = mysql.query(statement: "SELECT DropID, Latitude, Longitude, Color FROM TerraDrop")
 
@@ -147,6 +151,8 @@ public class Handlers
 
     public static func getUsers(request: HTTPRequest, response: HTTPResponse)
     {
+        checkConnection()
+
         let querySuccess = mysql.query(statement: "SELECT * FROM User")
 
         guard querySuccess else
