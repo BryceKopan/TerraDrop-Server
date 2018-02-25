@@ -46,22 +46,25 @@ public class Handlers
             return
         }  
 
-        var drop = DisplayDrop() 
+        var drops = [DisplayDrop]() 
         
         let results = mysql.storeResults()!
 
         results.forEachRow
         {
             row in
+            var drop = DisplayDrop()
 
             drop.title = String(row[0]!)!
             drop.message = String(row[1]!)!
             drop.displayName = String(row[2]!)!
+
+            drops.append(drop)
         }
 
         do
         {
-            let data = try jsonEncoder.encode(drop)
+            let data = try jsonEncoder.encode(drops)
 
             response.setHeader(.contentType, value: "text")
             response.appendBody(string: String(data: data, encoding: .utf8)!)
