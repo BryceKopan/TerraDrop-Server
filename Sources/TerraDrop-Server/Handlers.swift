@@ -112,8 +112,6 @@ public class Handlers
             
             return drops
         }*/
-        checkConnection()
-
         if(!checkConnection())
         {
             return
@@ -161,8 +159,6 @@ public class Handlers
 
     public static func getUsers(request: HTTPRequest, response: HTTPResponse)
     {
-        checkConnection()
-
         if(!checkConnection())
         {
             return
