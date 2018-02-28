@@ -45,20 +45,26 @@ public class Handlers
 
     public static func getDisplayDrop(request: HTTPRequest, response: HTTPResponse)
     {
-        print("[GetDisplayDrop]")
+        let debugString: String = "[GetDisplayDrop]"
 
         if(!checkConnection())
         {
             return
         }
 
-        let dropID = Int(request.param(name: "dropID", defaultValue: nil)!)!
+        guard let dropID = Int(request.param(name: "dropID", defaultValue: nil)!) else
+        {
+            print("\(debugString) DropID missing")
+            return
+        }
+
+        print(dropID)
 
         let querySuccess = mysql.query(statement: "SELECT Title, Message, DisplayName FROM TerraDrop INNER JOIN User ON TerraDrop.UserID = User.UserID WHERE DropID = \(dropID)")
 
         guard querySuccess else
         {
-            print("[GetDisplayDrop] Query Failed: \(mysql.errorMessage())")
+            print("\(debugString) Query Failed: \(mysql.errorMessage())")
             return
         }  
 
@@ -85,7 +91,7 @@ public class Handlers
         } 
         catch
         {
-            print("[GetDisplayDrop] JSON Encoding failed")
+            print("\(debugString) JSON Encoding failed")
             return
         }
     }
