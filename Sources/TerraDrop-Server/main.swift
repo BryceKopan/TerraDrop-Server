@@ -65,7 +65,7 @@ catch
 
 public func checkConnection() -> Bool
 {
-    if(mysql.ping())
+    if(!mysql.ping())
     {
         print("MySQL connection lost: Reconnecting...")
         connected = mysql.connect(host: mySQLHost, user: mySQLUser, password: mySQLPassword, db: mySQLDB)
