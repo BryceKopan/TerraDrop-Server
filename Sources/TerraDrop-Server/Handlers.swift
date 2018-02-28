@@ -47,8 +47,9 @@ public class Handlers
     {
         let debugString: String = "[GetDisplayDrop]"
 
-        if(!checkConnection())
+        guard let mysql = connectToDatabase() else
         {
+            print("\(debugString) Failed to connect to database")
             return
         }
 
@@ -116,8 +117,9 @@ public class Handlers
             
             return drops
         }*/
-        if(!checkConnection())
+        guard let mysql = connectToDatabase() else
         {
+            print("Failed to connect to databasei")
             return
         }
 
