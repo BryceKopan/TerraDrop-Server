@@ -63,12 +63,18 @@ catch
     fatalError("\(error)")
 }
 
-public func checkConnection()
+public func checkConnection() -> Bool
 {
     if(!connected)
     {
+        print("MySQL connection lost: Reconnecting...")
         connected = mysql.connect(host: mySQLHost, user: mySQLUser, password: mySQLPassword, db: mySQLDB)
 
-        assert(connected, mysql.errorMessage())        
+        if(!connected)
+        {
+            print("Cannot connect to MySQL: \(mysql.errorMessage())");
+            return false
+        }
     }
+    return true
 }

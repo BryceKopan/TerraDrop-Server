@@ -10,20 +10,20 @@ public class Handlers
 
     public static func postDrop(request: HTTPRequest, response: HTTPResponse)
     {
-        checkConnection()
+        print("[PostDrop]")
+
+        if(!checkConnection())
+        {
+            return
+        }
 
         var drop = FullDrop() 
 
         drop.latitude = Double(request.param(name: "latitude", defaultValue: nil)!)!
-        print("lat")
         drop.longitude = Double(request.param(name: "longitude", defaultValue: nil)!)!
-        print("long")
         drop.userID = Int(request.param(name: "userID", defaultValue: nil)!)!
-        print("user")
         drop.title = String(request.param(name: "title", defaultValue: nil)!)!
-        print("title")
         drop.message = String(request.param(name: "message", defaultValue: nil)!)!
-        print("meesage")
         drop.color = String(request.param(name: "color", defaultValue: "00FF00")!)!
 
         let querySuccess = mysql.query(statement: "INSERT INTO TerraDrop (Hidden, Latitude, Longitude, Title, Message, UserID) VALUES (FALSE, \(drop.latitude), \(drop.longitude), '\(drop.title)', '\(drop.message)', \(drop.userID))")
@@ -45,7 +45,12 @@ public class Handlers
 
     public static func getDisplayDrop(request: HTTPRequest, response: HTTPResponse)
     {
-        checkConnection()
+        print("[GetDisplayDrop]")
+
+        if(!checkConnection())
+        {
+            return
+        }
 
         let dropID = Int(request.param(name: "dropID", defaultValue: nil)!)!
 
@@ -53,7 +58,7 @@ public class Handlers
 
         guard querySuccess else
         {
-            print("[GetFullDrop] Query Failed: \(mysql.errorMessage())")
+            print("[GetDisplayDrop] Query Failed: \(mysql.errorMessage())")
             return
         }  
 
@@ -80,7 +85,7 @@ public class Handlers
         } 
         catch
         {
-            print("[GetFullDrop] JSON Encoding failed")
+            print("[GetDisplayDrop] JSON Encoding failed")
             return
         }
     }
@@ -108,6 +113,11 @@ public class Handlers
             return drops
         }*/
         checkConnection()
+
+        if(!checkConnection())
+        {
+            return
+        }
 
         let querySuccess = mysql.query(statement: "SELECT DropID, Latitude, Longitude, Color FROM TerraDrop")
 
@@ -152,6 +162,11 @@ public class Handlers
     public static func getUsers(request: HTTPRequest, response: HTTPResponse)
     {
         checkConnection()
+
+        if(!checkConnection())
+        {
+            return
+        }
 
         let querySuccess = mysql.query(statement: "SELECT * FROM User")
 
