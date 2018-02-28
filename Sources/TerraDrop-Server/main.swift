@@ -47,13 +47,13 @@ let mySQLUser = "root"
 let mySQLPassword = "root"
 let mySQLDB = "TerraDrop"
 
-let mysql = MySQL()
+//let mysql = MySQL()
 
-var connected = mysql.connect(host: mySQLHost, user: mySQLUser, password: mySQLPassword, db: mySQLDB)
+//var connected = mysql.connect(host: mySQLHost, user: mySQLUser, password: mySQLPassword, db: mySQLDB)
 
 let jsonEncoder = JSONEncoder()
 
-assert(connected, mysql.errorMessage())
+//assert(connected, mysql.errorMessage())
     
 do 
 {
@@ -80,7 +80,7 @@ public func connectToDatabase() -> MySQL?
     }
 }
 
-public func checkConnection() -> Bool
+/*public func checkConnection() -> Bool
 {
     if(!mysql.ping())
     {
@@ -94,4 +94,4 @@ public func checkConnection() -> Bool
         }
     }
     return true
-}
+}*/

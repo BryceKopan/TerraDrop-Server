@@ -10,11 +10,17 @@ public class Handlers
 
     public static func postDrop(request: HTTPRequest, response: HTTPResponse)
     {
-        print("[PostDrop]")
+        let debugID: String = "[PostDrop]"
 
-        if(!checkConnection())
+        guard let mysql = connectToDatabase() else
         {
+            print("\(debugID) Failed to connect to database")
             return
+        }
+
+        defer
+        {
+            mysql.close()
         }
 
         var drop = FullDrop() 
@@ -30,7 +36,7 @@ public class Handlers
 
         guard querySuccess else
         {
-            print("[PostDrop] Query Failed")
+            print("\(debugID) Query Failed")
             
             response.setHeader(.contentType, value: "text")
             response.appendBody(string: "FALSE")
@@ -45,17 +51,22 @@ public class Handlers
 
     public static func getDisplayDrop(request: HTTPRequest, response: HTTPResponse)
     {
-        let debugString: String = "[GetDisplayDrop]"
+        let debugID: String = "[GetDisplayDrop]"
 
         guard let mysql = connectToDatabase() else
         {
-            print("\(debugString) Failed to connect to database")
+            print("\(debugID) Failed to connect to database")
             return
+        }
+
+        defer
+        {
+            mysql.close()
         }
 
         guard let dropID = Int(request.param(name: "dropID", defaultValue: nil)!) else
         {
-            print("\(debugString) DropID missing")
+            print("\(debugID) DropID missing")
             return
         }
 
@@ -63,7 +74,7 @@ public class Handlers
 
         guard querySuccess else
         {
-            print("\(debugString) Query Failed: \(mysql.errorMessage())")
+            print("\(debugID) Query Failed: \(mysql.errorMessage())")
             return
         }  
 
@@ -90,7 +101,7 @@ public class Handlers
         } 
         catch
         {
-            print("\(debugString) JSON Encoding failed")
+            print("\(debugID) JSON Encoding failed")
             return
         }
     }
@@ -117,17 +128,24 @@ public class Handlers
             
             return drops
         }*/
+        let debugID: String = "[GetDrops]"
+
         guard let mysql = connectToDatabase() else
         {
-            print("Failed to connect to databasei")
+            print("\(debugID) Failed to connect to database")
             return
+        }
+
+        defer
+        {
+            mysql.close()
         }
 
         let querySuccess = mysql.query(statement: "SELECT DropID, Latitude, Longitude, Color FROM TerraDrop")
 
         guard querySuccess else
         {
-            print("[GetDrops] Query Failed: \(mysql.errorMessage())")
+            print("\(debugID) Query Failed: \(mysql.errorMessage())")
             return
         }  
 
@@ -158,23 +176,31 @@ public class Handlers
         } 
         catch
         {
-            print("[GetDrops] JSON Encoding failed")
+            print("\(debugID) JSON Encoding failed")
             return
         }
     }
 
     public static func getUsers(request: HTTPRequest, response: HTTPResponse)
     {
-        if(!checkConnection())
+        let debugID: String = "[GetUsers]"
+
+        guard let mysql = connectToDatabase() else
         {
+            print("\(debugID) Failed to connect to database")
             return
+        }
+
+        defer
+        {
+            mysql.close()
         }
 
         let querySuccess = mysql.query(statement: "SELECT * FROM User")
 
         guard querySuccess else
         {
-            print("[GetUsers] Query Failed")
+            print("\(debugID) Query Failed")
             return
         }  
 
@@ -205,12 +231,12 @@ public class Handlers
         } 
         catch
         {
-            print("[GetUsers] JSON Encoding failed")
+            print("\(debugID) JSON Encoding failed")
             return
         }
     }
 
-    private static func retrieve<T>(sqlData: String, array: [T],using closure: () -> [T]) -> String
+    /*private static func retrieve<T>(sqlData: String, array: [T],using closure: () -> [T]) -> String
     {
         let querySuccess = mysql.query(statement: sqlData)
 
@@ -231,5 +257,5 @@ public class Handlers
             print("JSON Encoding failed")
             return "Failed"
         }
-    }
+    }*/
 }
