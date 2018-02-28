@@ -68,7 +68,7 @@ public func connectToDatabase() -> MySQL?
 {
     let mysql1 = MySQL()
 
-    let connected1 = mysql.connect(host: mySQLHost, user: mySQLUser, password: mySQLPassword, db: mySQLDB)
+    let connected1 = mysql1.connect(host: mySQLHost, user: mySQLUser, password: mySQLPassword, db: mySQLDB)
 
     if(connected1)
     {
