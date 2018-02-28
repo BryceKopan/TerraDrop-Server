@@ -65,6 +65,8 @@ catch
 
 public func checkConnection() -> Bool
 {
+    print("Checkingonnect")
+
     if(!connected)
     {
         print("MySQL connection lost: Reconnecting...")

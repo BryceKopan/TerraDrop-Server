@@ -47,18 +47,16 @@ public class Handlers
     {
         let debugString: String = "[GetDisplayDrop]"
 
-        if(!checkConnection())
-        {
-            return
-        }
-
         guard let dropID = Int(request.param(name: "dropID", defaultValue: nil)!) else
         {
             print("\(debugString) DropID missing")
             return
         }
-
-        print(dropID)
+         
+        if(!checkConnection())
+        {
+            return
+        }
 
         let querySuccess = mysql.query(statement: "SELECT Title, Message, DisplayName FROM TerraDrop INNER JOIN User ON TerraDrop.UserID = User.UserID WHERE DropID = \(dropID)")
 
