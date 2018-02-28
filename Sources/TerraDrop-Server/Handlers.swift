@@ -47,14 +47,14 @@ public class Handlers
     {
         let debugString: String = "[GetDisplayDrop]"
 
+        if(!checkConnection())
+        {
+            return
+        }
+
         guard let dropID = Int(request.param(name: "dropID", defaultValue: nil)!) else
         {
             print("\(debugString) DropID missing")
-            return
-        }
-         
-        if(!checkConnection())
-        {
             return
         }
 
