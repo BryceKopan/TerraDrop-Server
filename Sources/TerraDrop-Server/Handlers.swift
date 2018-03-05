@@ -2,22 +2,68 @@ import PerfectHTTP
 
 public class Handlers
 {
-    /*public static func login(request: HTTPRequest, response: HTTPResponse)
+    public static func login(request: HTTPRequest, response: HTTPResponse)
     {
+        let debugID: String = "[Login]"
 
-    }*/
+        guard let mysql = connectToDatabase() else
+        {
+            print("\(debugID) Failed to connect to database")
+            return
+        }
+
+        defer
+        {
+            mysql.close()
+        }
+
+        guard request.session != nil else
+        {
+            print("\(debugID) Session Not Found");
+            return 
+        }
+
+        let username = String(request.param(name: "username", defaultValue: nil)!)!
+        let password = String(request.param(name: "password", defaultValue: nil)!)!
+
+        let querySuccess = mysql.query(statement: "SELECT UserID FROM User WHERE Username = '\(username)' AND Password = '\(password)'")
+        
+        guard querySuccess else
+        {
+            print("\(debugID) Query Failed")
+            
+            response.setHeader(.contentType, value: "text")
+            response.appendBody(string: "FALSE")
+            response.completed()
+            return
+        }
+
+        let results = mysql.storeResults()!
+        
+        results.forEachRow
+        {
+            row in
+
+            print(String(row[0]!)!)
+
+            request.session!.userid = String(row[0]!)!
+        }
+
+        response.setBody(string: "TRUE")
+        response.completed()
+        return
+    }
 
     public static func getSessionData(request: HTTPRequest, response: HTTPResponse)
     {
         guard let session = request.session else
         {
             response.setBody(string: "Session Not Found")
-            return response.completed()
+            response.completed()
+            return
         }
 
-        var body = "Your Session ID is: \(session.token)"
-        
-        response.setBody(string: body)
+        response.setBody(string: "Your Session ID is \(session.token) Your UserID is \(session.userid)")
         response.completed()
     }
 
@@ -36,11 +82,23 @@ public class Handlers
             mysql.close()
         }
 
+        guard let session = request.session else
+        {
+            print("\(debugID) Session Not Found");
+            return 
+        }
+
+        guard let userID = Int(session.userid) else
+        {
+            print("\(debugID) Session Not Logged In")
+            return
+        }
+
         var drop = FullDrop() 
 
         drop.latitude = Double(request.param(name: "latitude", defaultValue: nil)!)!
         drop.longitude = Double(request.param(name: "longitude", defaultValue: nil)!)!
-        drop.userID = Int(request.param(name: "userID", defaultValue: nil)!)!
+        drop.userID = userID
         drop.title = String(request.param(name: "title", defaultValue: nil)!)!
         drop.message = String(request.param(name: "message", defaultValue: nil)!)!
         drop.color = String(request.param(name: "color", defaultValue: "00FF00")!)!
