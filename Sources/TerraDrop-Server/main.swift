@@ -4,13 +4,22 @@ import PerfectMySQL
 import Foundation
 import PerfectSession
 
-let confData = [
+let server = HTTPServer()
+
+server.serverPort = 8080
+server.addRoutes(makeRoutes())
+
+SessionConfig.name = "TerraDropSession"
+SessionConfig.idle = 86400
+SessionConfig.purgeInterval = 3600
+
+let sessionDriver = SessionMemoryDriver()
+
+server.setRequestFilters([sessionDriver.requestFilter])
+server.setResponseFilters([sessionDriver.responseFilter])
+
+/*let confData = [
     "servers": [
-        //Configuration data for one server which:
-        //* Serves the hello world message at <host>:<port>/
-        //* Serves static files out of the "./webroot"
-        //directory (which must be located in the current working directory).
-        //* Performs content compression on outgoing data when appropriate.
         [
             "name":"localhost",
             "port":8080,
@@ -20,7 +29,6 @@ let confData = [
                 ["method":"post", "uri":"/postDrop", "handler":Handlers.postDrop],
                 ["method":"get", "uri":"/getDisplayDrop", "handler":Handlers.getDisplayDrop],
                 //["method":"post", "uri":"/login", "handler":Handlers.login],
-                ["method":"get", "uri":"/**", "handler":PerfectHTTPServer.HTTPHandler.staticFiles,                    
                 "documentRoot":"./webroot",
                 "allowResponseFilters":true]
             ],
@@ -33,14 +41,7 @@ let confData = [
             ]
         ]
     ]
-]
-
-/*SessionConfig.name = "TerraDropSession"
-SessionConfig.idle = 86400
-SessionConfig.cookieDomain = "localhost"
-
-let sessionDriver = SessionMemoryDriver()
-*/
+]*/
 
 let mySQLHost = "0.0.0.0"
 let mySQLUser = "root"
@@ -57,7 +58,7 @@ let jsonEncoder = JSONEncoder()
     
 do 
 {
-    try HTTPServer.launch(configurationData: confData)
+    try server.start() 
 } 
 catch 
 {

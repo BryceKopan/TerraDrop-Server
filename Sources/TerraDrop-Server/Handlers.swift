@@ -7,6 +7,19 @@ public class Handlers
 
     }*/
 
+    public static func getSessionData(request: HTTPRequest, response: HTTPResponse)
+    {
+        guard let session = request.session else
+        {
+            response.setBody(string: "Session Not Found")
+            return response.completed()
+        }
+
+        var body = "Your Session ID is: \(session.token)"
+        
+        response.setBody(string: body)
+        response.completed()
+    }
 
     public static func postDrop(request: HTTPRequest, response: HTTPResponse)
     {
