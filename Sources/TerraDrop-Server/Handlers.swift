@@ -2,13 +2,68 @@ import PerfectHTTP
 
 public class Handlers
 {
-    public static func login(request: HTTPRequest, response: HTTPResponse)
-    {
-        let debugID: String = "[Login]"
+    public static func getFoundDrops(request: HTTPRequest, response: HTTPResponse)
+    {/*
+        let debugID: String = "[GetFoundDrops]"
 
         guard let mysql = connectToDatabase() else
         {
             print("\(debugID) Failed to connect to database")
+            return
+        }
+
+        defer
+        {
+            mysql.close()
+        }
+
+        let querySuccess = mysql.query(statement: "SELECT DropID, Latitude, Longitude, Color FROM TerraDrop")
+
+        guard querySuccess else
+        {
+            print("\(debugID) Query Failed: \(mysql.errorMessage())")
+            return
+        }  
+
+        var drops = [PartialDrop]() 
+        
+        let results = mysql.storeResults()!
+
+        results.forEachRow
+        {
+            row in
+            var drop = PartialDrop()
+
+            drop.id = Int(row[0]!)!
+            drop.latitude = Double(row[1]!)!
+            drop.longitude = Double(row[2]!)!
+            drop.color = String(row[3]!)!
+
+            drops.append(drop)
+        }
+
+        do
+        {
+            let data = try jsonEncoder.encode(drops)
+
+            response.setHeader(.contentType, value: "text")
+            response.appendBody(string: String(data: data, encoding: .utf8)!)
+            response.completed()
+        } 
+        catch
+        {
+            print("\(debugID) JSON Encoding failed")
+            return
+        }
+    */}
+
+    public static func login(request: HTTPRequest, response: HTTPResponse)
+    {
+        let debugID: String = "[Login]" 
+
+        guard let mysql = connectToDatabase() else
+        {
+            print("\(debugID) Failed to  connect to database")
             return
         }
 
@@ -56,15 +111,31 @@ public class Handlers
 
     public static func getSessionData(request: HTTPRequest, response: HTTPResponse)
     {
+        let debugID = "[GetSessionData]"
+
         guard let session = request.session else
         {
-            response.setBody(string: "Session Not Found")
-            response.completed()
+            print("\(debugID) Session Not Found")
             return
         }
 
-        response.setBody(string: "Your Session ID is \(session.token) Your UserID is \(session.userid)")
-        response.completed()
+        var sessionData = SessionData()
+        sessionData.sessionID = session.token
+        sessionData.userID = Int(session.userid) 
+        
+        do
+        {
+            let data = try jsonEncoder.encode(sessionData)
+
+            response.setHeader(.contentType, value: "text")
+            response.appendBody(string: String(data: data, encoding: .utf8)!)
+            response.completed()
+        } 
+        catch
+        {
+            print("\(debugID) JSON Encoding failed")
+            return
+        }
     }
 
     public static func postDrop(request: HTTPRequest, response: HTTPResponse)
