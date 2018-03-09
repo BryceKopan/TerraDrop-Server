@@ -1,4 +1,5 @@
 import PerfectHTTP
+import PerfectMySQL
 
 public class Handlers
 {
@@ -47,7 +48,7 @@ public class Handlers
             let data = try jsonEncoder.encode(drops)
 
             response.setHeader(.contentType, value: "text")
-            response.appendBody(string: String(data: data, encoding: .utf8)!)
+            response.setBody(string: String(data: data, encoding: .utf8)!)
             response.completed()
         } 
         catch
@@ -59,170 +60,103 @@ public class Handlers
 
     public static func login(request: HTTPRequest, response: HTTPResponse)
     {
-        let debugID: String = "[Login]" 
+        guard let mySQL = getMySQL(for: response) else { return }
 
-        guard let mysql = connectToDatabase() else
-        {
-            print("\(debugID) Failed to  connect to database")
-            return
-        }
-
-        defer
-        {
-            mysql.close()
-        }
+        defer { mySQL.close() }
 
         guard request.session != nil else
         {
-            print("\(debugID) Session Not Found");
+            let error = Error(type: "Session Not Found")
+            encode(error, to: response)
             return 
         }
 
         let username = String(request.param(name: "username", defaultValue: nil)!)!
         let password = String(request.param(name: "password", defaultValue: nil)!)!
 
-        let querySuccess = mysql.query(statement: "SELECT UserID FROM User WHERE Username = '\(username)' AND Password = '\(password)'")
+        let query = "SELECT UserID, DisplayName FROM User WHERE Username = '\(username)' AND Password = '\(password)'"
         
-        guard querySuccess else
-        {
-            print("\(debugID) Query Failed")
-            
-            response.setHeader(.contentType, value: "text")
-            response.appendBody(string: "FALSE")
-            response.completed()
-            return
-        }
+        guard execute(query, on: mySQL, for: response) else { return }
 
-        let results = mysql.storeResults()!
-        
+        let results = mySQL.storeResults()!
+
+        var user = User()
+
         results.forEachRow
         {
             row in
 
-            print(String(row[0]!)!)
+            user.userID = Int(row[0]!)!
+            user.displayName = String(row[1]!)!
 
             request.session!.userid = String(row[0]!)!
         }
-
-        response.setBody(string: "TRUE")
-        response.completed()
-        return
+        
+        encode(user, to: response)
     }
 
     public static func getSessionData(request: HTTPRequest, response: HTTPResponse)
     {
-        let debugID = "[GetSessionData]"
+        guard checkLogin(of: request, for: response) else { return }
 
-        guard let session = request.session else
-        {
-            print("\(debugID) Session Not Found")
-            return
-        }
+        let session = request.session!
 
         var sessionData = SessionData()
         sessionData.sessionID = session.token
         sessionData.userID = Int(session.userid) 
-        
-        do
-        {
-            let data = try jsonEncoder.encode(sessionData)
 
-            response.setHeader(.contentType, value: "text")
-            response.appendBody(string: String(data: data, encoding: .utf8)!)
-            response.completed()
-        } 
-        catch
-        {
-            print("\(debugID) JSON Encoding failed")
-            return
-        }
+        encode(sessionData, to: response)
     }
 
     public static func postDrop(request: HTTPRequest, response: HTTPResponse)
     {
-        let debugID: String = "[PostDrop]"
+        guard checkLogin(of: request, for: response) else { return }
 
-        guard let mysql = connectToDatabase() else
-        {
-            print("\(debugID) Failed to connect to database")
-            return
-        }
+        guard let mySQL = getMySQL(for: response) else { return }
 
-        defer
-        {
-            mysql.close()
-        }
+        defer { mySQL.close() }
 
-        guard let session = request.session else
-        {
-            print("\(debugID) Session Not Found");
-            return 
-        }
-
-        guard let userID = Int(session.userid) else
-        {
-            print("\(debugID) Session Not Logged In")
-            return
-        }
-
-        var drop = FullDrop() 
+        var drop = Drop() 
 
         drop.latitude = Double(request.param(name: "latitude", defaultValue: nil)!)!
         drop.longitude = Double(request.param(name: "longitude", defaultValue: nil)!)!
-        drop.userID = userID
+        drop.userID = Int(request.session!.userid)!
         drop.title = String(request.param(name: "title", defaultValue: nil)!)!
         drop.message = String(request.param(name: "message", defaultValue: nil)!)!
         drop.color = String(request.param(name: "color", defaultValue: "00FF00")!)!
 
-        let querySuccess = mysql.query(statement: "INSERT INTO TerraDrop (Hidden, Latitude, Longitude, Title, Message, UserID) VALUES (FALSE, \(drop.latitude), \(drop.longitude), '\(drop.title)', '\(drop.message)', \(drop.userID))")
+        let query = "INSERT INTO TerraDrop (Hidden, Latitude, Longitude, Title, Message, UserID) VALUES (FALSE, \(drop.latitude!), \(drop.longitude!), '\(drop.title!)', '\(drop.message!)', \(drop.userID!))"
 
-        guard querySuccess else
-        {
-            print("\(debugID) Query Failed")
-            
-            response.setHeader(.contentType, value: "text")
-            response.appendBody(string: "FALSE")
-            response.completed()
-            return
-        }
+        guard execute(query, on: mySQL, for: response) else { return }
 
+        //Replace When Figure out how to get DropID
         response.setHeader(.contentType, value: "text")
-        response.appendBody(string: "TRUE")
+        response.setBody(string: "TRUE")
         response.completed()
     }
 
     public static func getDisplayDrop(request: HTTPRequest, response: HTTPResponse)
     {
-        let debugID: String = "[GetDisplayDrop]"
+        guard checkLogin(of: request, for: response) else { return }
 
-        guard let mysql = connectToDatabase() else
-        {
-            print("\(debugID) Failed to connect to database")
-            return
-        }
+        guard let mySQL = getMySQL(for: response) else { return }
 
-        defer
-        {
-            mysql.close()
-        }
+        defer { mySQL.close() }
 
         guard let dropID = Int(request.param(name: "dropID", defaultValue: nil)!) else
         {
-            print("\(debugID) DropID missing")
+            let error = Error(type: "DropID Missing")
+            encode(error, to: response)
             return
         }
 
-        let querySuccess = mysql.query(statement: "SELECT Title, Message, DisplayName FROM TerraDrop INNER JOIN User ON TerraDrop.UserID = User.UserID WHERE DropID = \(dropID)")
+        let query = "SELECT Title, Message, DisplayName FROM TerraDrop INNER JOIN User ON TerraDrop.UserID = User.UserID WHERE DropID = \(dropID)"
 
-        guard querySuccess else
-        {
-            print("\(debugID) Query Failed: \(mysql.errorMessage())")
-            return
-        }  
+        guard execute(query, on: mySQL, for: response) else { return }
 
-        var drop = DisplayDrop() 
-        
-        let results = mysql.storeResults()!
+        let results = mySQL.storeResults()!
+
+        var drop = Drop() 
 
         results.forEachRow
         {
@@ -233,72 +167,29 @@ public class Handlers
             drop.displayName = String(row[2]!)!
         }
 
-        do
-        {
-            let data = try jsonEncoder.encode(drop)
-
-            response.setHeader(.contentType, value: "text")
-            response.appendBody(string: String(data: data, encoding: .utf8)!)
-            response.completed()
-        } 
-        catch
-        {
-            print("\(debugID) JSON Encoding failed")
-            return
-        }
+        encode(drop, to: response)
     }
 
     public static func getDrops(request: HTTPRequest, response: HTTPResponse)
     {
-        /*var string = retrieve(sqlData: "SELECT DropID, Latitude, Longitude FROM TerraDrop", array: [PartialDrop])
-        {
-            var drops = [PartialDrop]()
+        guard checkLogin(of: request, for: response) else { return }
 
-            let results = mysql.storeResults()!
+        guard let mySQL = getMySQL(for: response) else { return }
 
-            results.forEachRow
-            {
-                row in
-                var drop = PartialDrop()
+        defer { mySQL.close() }
 
-                drop.id = Int(row[0]!)!
-                drop.latitude = Double(row[1]!)!
-                drop.longitude = Double(row[2]!)!
+        let query = "SELECT DropID, Latitude, Longitude, Color FROM TerraDrop"
 
-                drops.append(drop)
-            }
-            
-            return drops
-        }*/
-        let debugID: String = "[GetDrops]"
+        guard execute(query, on: mySQL, for: response) else { return }
 
-        guard let mysql = connectToDatabase() else
-        {
-            print("\(debugID) Failed to connect to database")
-            return
-        }
+        let results = mySQL.storeResults()!
 
-        defer
-        {
-            mysql.close()
-        }
-
-        let querySuccess = mysql.query(statement: "SELECT DropID, Latitude, Longitude, Color FROM TerraDrop")
-
-        guard querySuccess else
-        {
-            print("\(debugID) Query Failed: \(mysql.errorMessage())")
-            return
-        }  
-
-        var drops = [PartialDrop]() 
-        
-        let results = mysql.storeResults()!
+        var drops = [Drop]() 
 
         results.forEachRow
         {
             row in
-            var drop = PartialDrop()
+            var drop = Drop()
 
             drop.id = Int(row[0]!)!
             drop.latitude = Double(row[1]!)!
@@ -308,54 +199,31 @@ public class Handlers
             drops.append(drop)
         }
 
-        do
-        {
-            let data = try jsonEncoder.encode(drops)
-
-            response.setHeader(.contentType, value: "text")
-            response.appendBody(string: String(data: data, encoding: .utf8)!)
-            response.completed()
-        } 
-        catch
-        {
-            print("\(debugID) JSON Encoding failed")
-            return
-        }
+        encode(drops, to: response)
     }
 
     public static func getUsers(request: HTTPRequest, response: HTTPResponse)
     {
-        let debugID: String = "[GetUsers]"
+        guard checkLogin(of: request, for: response) else { return }
 
-        guard let mysql = connectToDatabase() else
-        {
-            print("\(debugID) Failed to connect to database")
-            return
-        }
+        guard let mySQL = getMySQL(for: response) else { return }
 
-        defer
-        {
-            mysql.close()
-        }
+        defer { mySQL.close() }
 
-        let querySuccess = mysql.query(statement: "SELECT * FROM User")
+        let query = "SELECT * FROM User"
 
-        guard querySuccess else
-        {
-            print("\(debugID) Query Failed")
-            return
-        }  
+        guard execute(query, on: mySQL, for: response) else { return }
 
-        var users = [FullUser]() 
-        
-        let results = mysql.storeResults()!
+        let results = mySQL.storeResults()!
+
+        var users = [User]() 
 
         results.forEachRow
         {
             row in
-            var user = FullUser()
+            var user = User()
 
-            user.id = Int(row[0]!)!
+            user.userID = Int(row[0]!)!
             user.username = String(row[1]!)!
             user.password = String(row[2]!)!
             user.displayName = String(row[3]!)!
@@ -363,41 +231,84 @@ public class Handlers
             users.append(user);
         }
 
-        do
-        {
-            let data = try jsonEncoder.encode(users)
-
-            response.setHeader(.contentType, value: "text")
-            response.appendBody(string: String(data: data, encoding: .utf8)!)
-            response.completed()
-        } 
-        catch
-        {
-            print("\(debugID) JSON Encoding failed")
-            return
-        }
+        encode(users, to: response)
     }
 
-    /*private static func retrieve<T>(sqlData: String, array: [T],using closure: () -> [T]) -> String
+    //Helper Functions
+
+    private static func encode<T: Codable>(_ data: T, to response: HTTPResponse)
     {
-        let querySuccess = mysql.query(statement: sqlData)
+        var myResponse: Response<T>
 
-        guard querySuccess else
+        if data is Error
         {
-            print("Query Failed: \(mysql.errorMessage())")
-            return "Failed"
-        }  
-
+            let error = data as! Error
+            print(error.type)
+            myResponse = Response(error: error)
+        }
+        else
+        {
+            myResponse = Response(data: data)
+        }
+            
         do
         {
-            let data = try jsonEncoder.encode(closure())
+            let json = try jsonEncoder.encode(myResponse)
+            let body = String(data: json, encoding: .utf8)!
 
-            return String(data: data, encoding: .utf8)!
-        } 
+            response.setHeader(.contentType, value: "text")
+            response.setBody(string: body)
+            response.completed()
+        }
         catch
         {
-            print("JSON Encoding failed")
-            return "Failed"
+            let error = Error(type: "JSON Encoding Failed")
+            encode(error, to: response)
+        }    
+    }
+
+    private static func checkLogin(of request: HTTPRequest, for response: HTTPResponse) -> Bool
+    {
+        guard let session = request.session else
+        {
+            let error = Error(type: "Session Not Found")
+            encode(error, to: response)
+            return false
         }
-    }*/
+
+        guard Int(session.userid) != nil else
+        {
+            let error = Error(type: "Session Not Logged In")
+            encode(error, to: response)
+            return false
+        }
+
+        return true
+    }
+
+    //Temporary Function : Replace when ConnectionPool is created
+    private static func getMySQL(for response: HTTPResponse) -> MySQL?
+    {
+        guard let mysql = connectToDatabase() else
+        {
+            let error = Error(type: "Database Not Found")
+            encode(error, to: response)
+            return nil
+        }
+
+        return mysql
+    }
+
+    private static func execute(_ query: String, on mySQL: MySQL, for response: HTTPResponse) -> Bool
+    {
+        guard mySQL.query(statement: query) else
+        {
+            let error = Error(type: "SQL Query Failed")
+            encode(error, to: response)
+            return false
+        } 
+
+        return true
+    }
 }
+
